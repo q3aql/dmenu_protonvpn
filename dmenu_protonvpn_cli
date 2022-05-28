@@ -2,19 +2,21 @@
 
 ################################################################
 # Script for manage your ProtonVPN connections (CLI VERSION)   #
-# Last change: 28-05-2022                                      #
+# Last change: 29-05-2022                                      #
 # Author: q3aql                                                #
 # Contact: q3aql@duck.com                                      #
 # License: GPL v2.0                                            #
 ################################################################
 VERSION="2.0"
-M_DATE="280522"
+M_DATE="290522"
 
 # Variables
 protonFiles="${HOME}/protonFiles"
 url_download="https://account.protonvpn.com/downloads"
 url_credentials="https://account.protonvpn.com/account#openvpn"
 file_credentials="/opt/dmenu_protonvpn/proton-credentials.txt"
+user_credentials="/opt/dmenu_protonvpn/proton-user.txt"
+pass_credentials="/opt/dmenu_protonvpn/proton-pass.txt"
 sed_file_credentials="\/opt\/dmenu_protonvpn\/proton-credentials.txt"
 menu_files="/opt/dmenu_protonvpn/menu"
 
@@ -55,6 +57,8 @@ for dep in ${list_dependencies}; do
 done
 
 function insertCredentials() {
+  cat ${user_credentials} > ${file_credentials}
+  cat "${pass_credentials}" >> ${file_credentials}
   if [ -f "${1}" ] ; then
     check_credentials=$(cat "${1}" | grep "auth-user-pass ${file_credentials}")
     if [ -z "${check_credentials}" ] ; then
@@ -64,20 +68,39 @@ function insertCredentials() {
 }
 
 function editCredentials() {
+  if [ -f ${user_credentials} ] ; then
+    current_user=$(cat ${user_credentials})
+  else
+    current_user=""
+  fi
+  if [ -f ${pass_credentials} ] ; then
+    current_pass=$(cat ${pass_credentials})
+  else
+    current_pass=""
+  fi
   clear
   echo ""
   echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
   echo ""
   echo -e "${purple}+ URL Credentials:${end}${yellow} ${url_credentials}${end}"
   echo ""
+  echo -e "${green}- Configured user:${end} ${purple}${current_user}${end}"
+  echo -e "${green}- Configured pass:${end} ${purple}${current_pass}${end}"
+  echo ""
   echo -ne "${green}* User OpenVPN / IKEv2:${end} " ; read user_openvpn
   echo -ne "${green}* Password OpenVPN / IKEv2:${end} " ; read pass_openvpn
   if [ -z "${user_openvpn}" ] ; then
-    echo "# User / Password canceled" 
+    echo "# User canceled" 
   else
-    echo "${user_openvpn}" > ${file_credentials}
-    echo "${pass_openvpn}" >> ${file_credentials}
+    echo "${user_openvpn}" > ${user_credentials}
   fi
+  if [ -z "${pass_openvpn}" ] ; then
+    echo "# Pass canceled" 
+  else
+    echo ${pass_openvpn} > ${pass_credentials}
+  fi
+  cat ${user_credentials} > ${file_credentials}
+  cat ${pass_credentials} >> ${file_credentials}
 }
 
 function checkFileCredentials() {
