@@ -1,7 +1,7 @@
 dmenu_protonvpn - Dmenu script tool for manage your ProtonVPN connections
 =========================================================================
 
-# Dependencies:
+### Dependencies:
 
   * gcc 
   * make
