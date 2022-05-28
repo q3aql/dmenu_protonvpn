@@ -54,6 +54,8 @@ install: all
 	cp -rf icon $(DESTDIR)$(PREFIX)/
 	cp -rf icon/dmenu_protonvpn.desktop /usr/share/applications/
 	chmod +x /usr/share/applications/dmenu_protonvpn.desktop
+	touch $(DESTDIR)$(PREFIX)/proton-user.txt
+	touch $(DESTDIR)$(PREFIX)/proton-pass.txt
 	touch $(DESTDIR)$(PREFIX)/proton-credentials.txt
 	chmod 755 -R $(DESTDIR)$(PREFIX)/menu
 	chmod 755 -R $(DESTDIR)$(PREFIX)/icon
@@ -62,6 +64,8 @@ install: all
 	chmod 755 $(DESTDIR)$(PREFIX)/dmenu_protonvpn_cli
 	chmod 755 $(DESTDIR)$(PREFIX)/stest
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+	chmod 777 $(DESTDIR)$(PREFIX)/proton-user.txt
+	chmod 777 $(DESTDIR)$(PREFIX)/proton-pass.txt
 	chmod 777 $(DESTDIR)$(PREFIX)/proton-credentials.txt
 	sed "s/VERSION/$(VERSION)/g" < dmenu.1 > $(DESTDIR)$(MANPREFIX)/man1/dmenu.1
 	sed "s/VERSION/$(VERSION)/g" < stest.1 > $(DESTDIR)$(MANPREFIX)/man1/stest.1
