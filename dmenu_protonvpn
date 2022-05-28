@@ -1,0 +1,171 @@
+#!/bin/bash
+
+################################################################
+# Script for manage your ProtonVPN connections (Dmenu VERSION) #
+# Last change: 28-05-2022                                      #
+# Author: q3aql                                                #
+# Contact: q3aql@duck.com                                      #
+# License: GPL v2.0                                            #
+################################################################
+VERSION="2.0"
+M_DATE="280522"
+
+# Variables
+protonFiles="${HOME}/protonFiles"
+url_download="https://account.protonvpn.com/downloads"
+url_credentials="https://account.protonvpn.com/account#openvpn"
+file_credentials="/opt/dmenu_protonvpn/proton-credentials.txt"
+sed_file_credentials="\/opt\/dmenu_protonvpn\/proton-credentials.txt"
+menu_files="/opt/dmenu_protonvpn/menu"
+
+list_show_files() {
+  echo "About"
+  echo "Download ProtonVPN files"
+  echo "Edit Credentials"
+  if [ -d "${protonFiles}" ] ; then
+    ls -1 "${protonFiles}/"
+  fi
+}
+
+list_show_icons() {
+  list_show_files | while read current_menu ; do
+    if [ "${current_menu}" == "About" ] ; then
+      echo "  ${current_menu}"
+    elif [ "${current_menu}" == "Download ProtonVPN files" ] ; then
+      echo "ﯲ  ${current_menu}"
+    elif [ "${current_menu}" == "Edit Credentials" ] ; then
+      echo "  ${current_menu}"
+    else
+      echo "  ${current_menu}"
+    fi
+  done
+}
+
+case "${TERM}" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+if [ "${color_prompt}" == "yes" ] ; then
+  blue='\e[34m' ; red='\e[31m' ; yellow='\e[33m'
+  purple='\e[35m' ; green='\e[32m' ; end='\e[0m'
+else
+  blue='' ; red='' ; yellow='' ; morado=''
+  verde='' ; end=''
+fi
+
+if [ -f /usr/bin/kitty ] ; then
+  termrun="kitty --title dmenu_proton -c=/opt/dmenu_protonvpn/config/kitty.conf -e" 
+else
+  xrdb -load /opt/dmenu_protonvpn/config/Xresources
+  termrun="xterm -T dmenu_proton -e"  
+fi
+
+# Create proton-openvpn-files folder
+mkdir -p ${protonFiles}
+
+function openBrowser() {
+  if [ -f /usr/bin/x-www-browser ] ; then
+    /usr/bin/x-www-browser ${1} &
+  else
+    if [ -f /usr/bin/firefox ] ; then
+      /usr/bin/firefox ${1}
+    else
+      if [ -f /usr/bin/brave-browser ] ; then
+        /usr/bin/brave-browser ${1}
+      else
+        if [ -f /usr/bin/google-chrome ] ; then
+          /usr/bin/google-chrome ${1} &
+        fi
+      fi
+    fi
+  fi
+}
+
+function insertCredentials() {
+  if [ -f "${1}" ] ; then
+    check_credentials=$(cat "${1}" | grep "auth-user-pass ${file_credentials}")
+    if [ -z "${check_credentials}" ] ; then
+     sed -i "s/auth-user-pass/auth-user-pass ${sed_file_credentials}/g" "${1}"  
+    fi
+  fi
+}
+
+function editCredentials() {
+  user_openvpn=$(zenity --entry --title "dmenu_protonvpn ${VERSION} (${M_DATE})" \
+--text "URL Credentials ${url_credentials}\n\nUser OpenVPN / IKEv2:" --entry-text "USER-HERE")
+  pass_openvpn=$(zenity --entry --title "dmenu_protonvpn ${VERSION} (${M_DATE})" \
+--text "URL Credentials ${url_credentials}\n\nPassword OpenVPN / IKEv2:" --entry-text "PASSWORD-HERE")
+  if [ -z "${user_openvpn}" ] ; then
+    echo "# User / Password canceled" 
+  else
+    echo "${user_openvpn}" > ${file_credentials}
+    echo "${pass_openvpn}" >> ${file_credentials}
+  fi
+}
+
+function checkFileCredentials() {
+  check_file=$(cat ${file_credentials} 2> /dev/null | wc -l)
+  if [ ${check_file} -ne 2 ] ; then
+    editCredentials
+  fi
+}
+
+function showAbout() {
+  zenity --title "About" --window-icon=${iconPath} --info --width=330 \
+  --text "Software: dmenu_protonvpn ${VERSION} (${M_DATE})\nAuthor: q3aql\nContact: q3aql@duck.com\nLicense: GPL v2.0"
+}
+
+function downloadProtonVPNFiles() {
+  openBrowser "${url_download}"
+  zenity --title "dmenu_protonvpn ${VERSION} (${M_DATE})" --window-icon=${iconPath} --info --width=400 \
+  --text "* Steps for download .ovpn files:\n\n - Open URL: ${url_download}\n - Login with your Proton account\n - Click to Downloads > OpenVPN configuration files\n - Download .ovpn files and copy to ${HOME}/protonFiles\n"
+}
+
+list_output=$(list_show_icons | /opt/dmenu_protonvpn/dmenu "$@" -p "嬨  dmenu_protonvpn v${VERSION}")
+run_output=$(echo "${list_output}" | cut -c4-999)
+echo "${run_output} # Selected"
+if [ "${run_output}" == "  About" ] ; then
+  if [ -f /usr/bin/zenity ] ; then
+    showAbout
+  else
+    echo ${termrun} ${menu_files}/about.sh
+    ${termrun} ${menu_files}/about.sh
+  fi
+elif [ "${run_output}" == "  Download ProtonVPN files" ] ; then
+  if [ -f /usr/bin/zenity ] ; then
+    downloadProtonVPNFiles
+  else
+    echo ${termrun} "${menu_files}/download-protonvpn-files.sh"
+    ${termrun} "${menu_files}/download-protonvpn-files.sh"
+  fi
+elif [ "${run_output}" == "  Edit Credentials" ] ; then
+  if [ -f /usr/bin/zenity ] ; then
+    editCredentials
+  else
+    echo ${termrun} "${menu_files}/edit-credentials.sh"
+    ${termrun} "${menu_files}/edit-credentials.sh"
+  fi
+else
+  if [ -z "${run_output}" ] ; then
+    echo > /dev/null
+  else
+    if [ -f /usr/bin/sudo ] ; then
+      run_output=$(echo ${run_output} | tr -s "  ")
+      cp -rf ${protonFiles}/${run_output} /tmp/
+      insertCredentials /tmp/${run_output}
+      echo ""
+      echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${run_output}${end}${purple}"
+      ${termrun} sudo openvpn /tmp/${run_output}
+      echo -e "${end}${red}* Connection closed${end}"
+      echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return
+    else
+      run_output=$(echo ${run_output} | tr -s "  ")
+      cp -rf ${protonFiles}/${run_output} /tmp/
+      insertCredentials /tmp/${run_output}
+      echo ""
+      echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${run_output}${end}${purple}"
+      ${termrun} su -c "openvpn /tmp/${run_output}"
+      echo -e "${end}${red}* Connection closed${end}"
+      echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return
+    fi
+  fi
+fi

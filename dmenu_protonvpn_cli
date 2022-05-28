@@ -1,0 +1,244 @@
+#!/bin/bash
+
+################################################################
+# Script for manage your ProtonVPN connections (CLI VERSION)   #
+# Last change: 28-05-2022                                      #
+# Author: q3aql                                                #
+# Contact: q3aql@duck.com                                      #
+# License: GPL v2.0                                            #
+################################################################
+VERSION="2.0"
+M_DATE="280522"
+
+# Variables
+protonFiles="${HOME}/protonFiles"
+url_download="https://account.protonvpn.com/downloads"
+url_credentials="https://account.protonvpn.com/account#openvpn"
+file_credentials="/opt/dmenu_protonvpn/proton-credentials.txt"
+sed_file_credentials="\/opt\/dmenu_protonvpn\/proton-credentials.txt"
+menu_files="/opt/dmenu_protonvpn/menu"
+
+case "${TERM}" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+if [ "${color_prompt}" == "yes" ] ; then
+  blue='\e[34m' ; red='\e[31m' ; yellow='\e[33m'
+  purple='\e[35m' ; green='\e[32m' ; end='\e[0m'
+else
+  blue='' ; red='' ; yellow='' ; morado=''
+  verde='' ; end=''
+fi
+
+# Create proton-openvpn-files folder
+mkdir -p ${protonFiles}
+
+list_dependencies="openvpn sed"
+for dep in ${list_dependencies}; do
+  if [ -f /usr/bin/${dep} ] ; then
+    echo > /dev/null
+  elif [ -f /bin/${dep} ] ; then
+    echo > /dev/null
+  elif [ -f /usr/sbin/${dep} ] ; then
+    echo > /dev/null
+  elif [ -f /usr/local/bin/${dep} ] ; then
+    echo > /dev/null
+  elif [ -f /usr/local/sbin/${dep} ] ; then
+    echo > /dev/null
+  else
+    echo ""
+    echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
+    echo ""
+    echo -e "${blue}+ The ${end}${red}'${dep}' ${end}${blue}tool is not installed!${end}"
+    echo ""
+    exit
+  fi
+done
+
+function insertCredentials() {
+  if [ -f "${1}" ] ; then
+    check_credentials=$(cat "${1}" | grep "auth-user-pass ${file_credentials}")
+    if [ -z "${check_credentials}" ] ; then
+     sed -i "s/auth-user-pass/auth-user-pass ${sed_file_credentials}/g" "${1}"  
+    fi
+  fi
+}
+
+function editCredentials() {
+  clear
+  echo ""
+  echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
+  echo ""
+  echo -e "${purple}+ URL Credentials:${end}${yellow} ${url_credentials}${end}"
+  echo ""
+  echo -ne "${green}* User OpenVPN / IKEv2:${end} " ; read user_openvpn
+  echo -ne "${green}* Password OpenVPN / IKEv2:${end} " ; read pass_openvpn
+  if [ -z "${user_openvpn}" ] ; then
+    echo "# User / Password canceled" 
+  else
+    echo "${user_openvpn}" > ${file_credentials}
+    echo "${pass_openvpn}" >> ${file_credentials}
+  fi
+}
+
+function checkFileCredentials() {
+  check_file=$(cat ${file_credentials} 2> /dev/null | wc -l)
+  if [ ${check_file} -ne 2 ] ; then
+    editCredentials
+  fi
+}
+
+function connectprotonVPN() { 
+  listTotal=$(ls -1 ${protonFiles}/*.ovpn 2> /dev/null | wc -l)
+  if [ ${listTotal} -eq 0 ] ; then
+    clear
+    echo ""
+    echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
+    echo ""
+    echo -e "${green}+ ProtonVPN files:${end} ${purple}${HOME}/protonFiles${end}"
+    echo ""
+    echo -e "${red}* No configuration files found! (*.ovpn)${end}"
+    echo ""
+    echo -e "${yellow}+ INFO:${end}${green} Follow the steps to download the configuration files${end}"
+    echo ""
+    echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return 
+  else
+    clear
+    checkFileCredentials
+    initialList=1
+    completeList=""
+    clear
+    echo ""
+    echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
+    echo ""
+    echo -e "${green}+ ProtonVPN files:${end} ${purple}${HOME}/protonFiles${end}"
+    echo ""
+    echo -e "${green}* Type number of entry to connect ProtonVPN:${end}"
+    echo ""
+    cd ${protonFiles}
+    ls -1 *.ovpn > /tmp/dmenu_protonvpn-tmp
+    while [ ${initialList} -le ${listTotal} ] ; do
+      entryRead=$(cat /tmp/dmenu_protonvpn-tmp | head -${initialList} | tail -1)
+      echo -e " ${red}${initialList}${end}${purple} -->${end}${green} ${entryRead}${end}" 
+      initialList=$(expr ${initialList} + 1)
+    done
+    rm -rf /tmp/dmenu_protonvpn-tmp
+    echo ""
+    echo -e " ${red}r${end}${purple} -->${end}${green} Return to menu (cancel)${end}"
+    echo ""
+    echo -ne "${green}+ ${end}${purple}[Default:${end}${red} r${end}${purple}]${end}${green} Type option:${end} " ; read option_proton
+    if [ -z "${option_proton}" ] ; then
+      showMainMenu
+    elif [ "${option_proton}" == "r" ] ; then
+      showMainMenu
+    else
+      if [ -z "${option_proton}" ] ; then
+        showMainMenu
+      else
+        entryRead=$(cat /tmp/dmenu_protonvpn-tmp | head -${option_proton} | tail -1)
+        insertCredentials ${protonFiles}/${entryRead}
+        echo ""
+        echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${entryRead}${end}${purple}"
+        if [ -f /usr/bin/sudo ] ; then
+          sudo openvpn ${protonFiles}/${entryRead}
+        else
+          su -c "openvpn ${protonFiles}/${entryRead}"
+        fi
+        echo -e "${end}${red}* Connection closed${end}"
+        echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return 
+      fi
+    fi
+  fi
+}
+
+function showAbout() {
+  clear
+  echo ""
+  echo -e "${green}* About:${end}"
+  echo ""
+  echo -e " ${red}-${end} ${green}Software:${end}${purple} dmenu_protonvpn_cli ${VERSION} (${M_DATE})${end}"
+  echo -e " ${red}-${end} ${green}Author:${end}${purple} q3aql${end}"
+  echo -e " ${red}-${end} ${green}Contact:${end}${purple} q3aql@duck.com${end}"
+  echo -e " ${red}-${end} ${green}License:${end}${purple} GPL v2.0${end}"
+  echo ""
+  echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return 
+}
+
+function downloadProtonVPNFiles() {
+  clear
+  echo ""
+  echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
+  echo ""
+  echo -e " ${purple}* Steps for download .ovpn files:${end}"
+  echo ""
+  echo -e " ${red}-${end}${green} Open URL: ${end}${yellow}${url_download}${end}"
+  echo -e " ${red}-${end}${green} Login with your Proton account${end}"
+  echo -e " ${red}-${end}${green} Click to Downloads > OpenVPN configuration files${end}"
+  echo -e " ${red}-${end}${green} Download *.ovpn files and copy to ${end}${yellow}/home/<user>/protonFiles${end}"
+  echo ""
+  echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return 
+}
+
+function showMainMenu() {
+  showMenu=0
+  while [ ${showMenu} -eq 0 ] ; do
+    clear
+    echo ""
+    echo -e "${green}* dmenu_protonvpn_cli${end}${purple} v${VERSION} ${end}${green}(${M_DATE})${end}"
+    echo ""
+    echo -e "${green}+ ProtonVPN files:${end} ${purple}${HOME}/protonFiles${end}"
+    echo ""
+    echo -e " ${red}c${end}${purple} --> ${end}${green}Select protonVPN file to connect${end}"
+    echo -e " ${red}d${end}${purple} --> ${end}${green}Download ProtonVPN files${end}"
+    echo -e " ${red}e${end}${purple} --> ${end}${green}Edit Credentials${end}"
+    echo -e " ${red}a${end}${purple} --> ${end}${green}About${end}"
+    echo ""
+    echo -e " ${red}q${end}${purple} --> ${end}${green}Exit${end}"
+    echo ""
+    echo -ne "${green}* Type the option (example: ${end}${purple}c${end}${green}):${end} " ; read opcion
+    cancel=$?
+    if [ ${cancel} -eq 1 ] ; then
+      showMenu=1
+      exit
+    else
+      if [ "${opcion}" == "c" ] ; then
+        connectprotonVPN
+      elif [ "${opcion}" == "s" ] ; then
+        showprotonVPNfiles
+      elif [ "${opcion}" == "d" ] ; then
+        downloadProtonVPNFiles
+      elif [ "${opcion}" == "e" ] ; then
+        editCredentials
+      elif [ "${opcion}" == "a" ] ; then
+        showAbout
+      elif [ "${opcion}" == "q" ] ; then
+        rm -rf /tmp/proton-openvpn-home
+        showMenu=1
+        exit
+      else
+        echo ""
+        echo -e "${red}+ Choose one of the menu options.${end}"
+        echo ""
+        echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return 
+      fi
+    fi
+  done
+}
+
+function createProtonDir() {
+  mkdir -p ${protonFiles}
+  chmod 777 -R ${protonFiles}
+  lista_usuarios=$(ls -1 /home)
+  for usuario in ${lista_usuarios} ; do
+    if [ -d /home/${usuario}/protonFiles ] ; then
+      echo > /dev/null
+    else
+      cd /home/${usuario}
+      ln -s ${protonFiles} protonFiles
+      chmod 777 -R protonFiles
+    fi
+  done
+}
+
+checkAdministrator
+createProtonDir
+showMainMenu
