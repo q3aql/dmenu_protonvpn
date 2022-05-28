@@ -58,7 +58,7 @@ done
 
 function insertCredentials() {
   cat ${user_credentials} > ${file_credentials}
-  cat "${pass_credentials}" >> ${file_credentials}
+  cat ${pass_credentials} >> ${file_credentials}
   if [ -f "${1}" ] ; then
     check_credentials=$(cat "${1}" | grep "auth-user-pass ${file_credentials}")
     if [ -z "${check_credentials}" ] ; then
