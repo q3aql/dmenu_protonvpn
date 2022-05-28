@@ -224,21 +224,5 @@ function showMainMenu() {
   done
 }
 
-function createProtonDir() {
-  mkdir -p ${protonFiles}
-  chmod 777 -R ${protonFiles}
-  lista_usuarios=$(ls -1 /home)
-  for usuario in ${lista_usuarios} ; do
-    if [ -d /home/${usuario}/protonFiles ] ; then
-      echo > /dev/null
-    else
-      cd /home/${usuario}
-      ln -s ${protonFiles} protonFiles
-      chmod 777 -R protonFiles
-    fi
-  done
-}
-
-checkAdministrator
-createProtonDir
+# Init main menu
 showMainMenu
