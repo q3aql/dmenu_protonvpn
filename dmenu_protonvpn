@@ -109,63 +109,88 @@ function checkFileCredentials() {
   fi
 }
 
+function aboutText() {
+  echo "  ABOUT:"
+  echo ""
+  echo "  Software: dmenu_protonvpn ${VERSION}"
+  echo "  Author: q3aql"
+  echo "  Contact: q3aql@duck.com"
+  echo "  License: GPL v2.0"
+  echo ""
+}
+
 function showAbout() {
-  zenity --title "About" --window-icon=${iconPath} --info --width=330 \
-  --text "Software: dmenu_protonvpn ${VERSION} (${M_DATE})\nAuthor: q3aql\nContact: q3aql@duck.com\nLicense: GPL v2.0"
+  aboutText | /opt/dmenu_protonvpn/dmenu "$@" -p "嬨  dmenu_protonvpn v${VERSION}"
+  run_main
+}
+
+function downloadFilesText() {
+  echo "ﯲ  DOWNLOAD PROTONVPN FILES:"
+  echo ""
+  echo "  Steps for download .ovpn files:"
+  echo ""
+  echo "   Open URL: ${url_download}"
+  echo "   Login with your Proton account"
+  echo "   Click to Downloads > OpenVPN configuration files"
+  echo "   Download *.ovpn files and copy to ${HOME}/protonFiles"
+  echo ""
+  echo "   Press HERE for open URL with browser"
+  echo ""
 }
 
 function downloadProtonVPNFiles() {
-  openBrowser "${url_download}"
-  zenity --title "dmenu_protonvpn ${VERSION} (${M_DATE})" --window-icon=${iconPath} --info --width=400 \
-  --text "* Steps for download .ovpn files:\n\n - Open URL: ${url_download}\n - Login with your Proton account\n - Click to Downloads > OpenVPN configuration files\n - Download .ovpn files and copy to ${HOME}/protonFiles\n"
+  select_output=$(downloadFilesText | /opt/dmenu_protonvpn/dmenu "$@" -p "嬨  dmenu_protonvpn v${VERSION}")
+  if [ "${select_output}" == "   Press HERE for open URL with browser" ] ; then
+    openBrowser "${url_download}" &
+    run_main
+  else
+    run_main
+  fi
 }
 
-list_output=$(list_show_icons | /opt/dmenu_protonvpn/dmenu "$@" -p "嬨  dmenu_protonvpn v${VERSION}")
-run_output=$(echo "${list_output}" | cut -c4-999)
-echo "${run_output} # Selected"
-if [ "${run_output}" == "  About" ] ; then
-  if [ -f /usr/bin/zenity ] ; then
+function run_main() {
+  echo "MAIN # Selected"
+  list_output=$(list_show_icons | /opt/dmenu_protonvpn/dmenu "$@" -p "嬨  dmenu_protonvpn v${VERSION}")
+  run_output=$(echo "${list_output}" | cut -c4-999)
+  echo "${run_output} # Selected"
+  if [ "${run_output}" == "  About" ] ; then
     showAbout
-  else
-    echo ${termrun} ${menu_files}/about.sh
-    ${termrun} ${menu_files}/about.sh
-  fi
-elif [ "${run_output}" == "  Download ProtonVPN files" ] ; then
-  if [ -f /usr/bin/zenity ] ; then
+  elif [ "${run_output}" == "  Download ProtonVPN files" ] ; then
     downloadProtonVPNFiles
-  else
-    echo ${termrun} "${menu_files}/download-protonvpn-files.sh"
-    ${termrun} "${menu_files}/download-protonvpn-files.sh"
-  fi
-elif [ "${run_output}" == "  Edit Credentials" ] ; then
-  if [ -f /usr/bin/zenity ] ; then
-    editCredentials
-  else
-    echo ${termrun} "${menu_files}/edit-credentials.sh"
-    ${termrun} "${menu_files}/edit-credentials.sh"
-  fi
-else
-  if [ -z "${run_output}" ] ; then
-    echo > /dev/null
-  else
-    if [ -f /usr/bin/sudo ] ; then
-      run_output=$(echo ${run_output} | tr -s "  ")
-      cp -rf ${protonFiles}/${run_output} /tmp/
-      insertCredentials /tmp/${run_output}
-      echo ""
-      echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${run_output}${end}${purple}"
-      ${termrun} sudo openvpn /tmp/${run_output}
-      echo -e "${end}${red}* Connection closed${end}"
-      echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return
+  elif [ "${run_output}" == "  Edit Credentials" ] ; then
+    if [ -f /usr/bin/zenity ] ; then
+      editCredentials
     else
-      run_output=$(echo ${run_output} | tr -s "  ")
-      cp -rf ${protonFiles}/${run_output} /tmp/
-      insertCredentials /tmp/${run_output}
-      echo ""
-      echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${run_output}${end}${purple}"
-      ${termrun} su -c "openvpn /tmp/${run_output}"
-      echo -e "${end}${red}* Connection closed${end}"
-      echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return
+      echo ${termrun} "${menu_files}/edit-credentials.sh"
+      ${termrun} "${menu_files}/edit-credentials.sh"
+    fi
+  else
+    if [ -z "${run_output}" ] ; then
+      echo > /dev/null
+    else
+      if [ -f /usr/bin/sudo ] ; then
+        run_output=$(echo ${run_output} | tr -s "  ")
+        cp -rf ${protonFiles}/${run_output} /tmp/
+        insertCredentials /tmp/${run_output}
+        echo ""
+        echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${run_output}${end}${purple}"
+        ${termrun} sudo openvpn /tmp/${run_output}
+        echo -e "${end}${red}* Connection closed${end}"
+        echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return
+      else
+        run_output=$(echo ${run_output} | tr -s "  ")
+        cp -rf ${protonFiles}/${run_output} /tmp/
+        insertCredentials /tmp/${run_output}
+        echo ""
+        echo -e "${green}* Connecting using file ${end}${yellow}${protonFiles}/${run_output}${end}${purple}"
+        ${termrun} su -c "openvpn /tmp/${run_output}"
+        echo -e "${end}${red}* Connection closed${end}"
+        echo -ne "${green}+ Press ${end}${purple}ENTER${end}${green} to return menu${end} " ; read return
+      fi
     fi
   fi
-fi
+}
+
+# Exec main function
+run_main
+
