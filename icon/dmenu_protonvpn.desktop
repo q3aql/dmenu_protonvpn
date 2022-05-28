@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Dmenu_ProtonVPN
+GenericName=Dmenu_ProtonVPN
+Comment=Script for manage your ProtonVPN connections
+Comment[es]=Script para gestionar tus conexiones de ProtonVPN
+Exec=/usr/bin/dmenu_protonvpn
+Terminal=false
+Icon=/opt/dmenu_protonvpn/icon/dmenu_protonvpn.png
+Type=Application
+Categories=GTK;Utility;TerminalEmulator;System;Network;
+
