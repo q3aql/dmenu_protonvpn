@@ -136,19 +136,6 @@ function editCredentials() {
   fi 
 }
 
-function editCredentials2() {
-  user_openvpn=$(zenity --entry --title "dmenu_protonvpn ${VERSION} (${M_DATE})" \
---text "URL Credentials ${url_credentials}\n\nUser OpenVPN / IKEv2:" --entry-text "USER-HERE")
-  pass_openvpn=$(zenity --entry --title "dmenu_protonvpn ${VERSION} (${M_DATE})" \
---text "URL Credentials ${url_credentials}\n\nPassword OpenVPN / IKEv2:" --entry-text "PASSWORD-HERE")
-  if [ -z "${user_openvpn}" ] ; then
-    echo "# User / Password canceled" 
-  else
-    echo "${user_openvpn}" > ${file_credentials}
-    echo "${pass_openvpn}" >> ${file_credentials}
-  fi
-}
-
 function checkFileCredentials() {
   check_file=$(cat ${file_credentials} 2> /dev/null | wc -l)
   if [ ${check_file} -ne 2 ] ; then
@@ -215,6 +202,7 @@ function run_main() {
     if [ -z "${run_output}" ] ; then
       echo > /dev/null
     else
+      checkFileCredentials
       if [ -f /usr/bin/sudo ] ; then
         run_output=$(echo ${run_output} | tr -s "  ")
         cp -rf ${protonFiles}/${run_output} /tmp/
