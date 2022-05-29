@@ -33,9 +33,12 @@ dmenu_protonvpn - Dmenu script tool for manage your ProtonVPN connections
 
 * You can also use the applications menu: `Menu > Network > Dmenu_ProtonVPN`
 
-<img src="examples/dmenu_protonvpn.png" /> 
-
 * Copy your .ovpn files to `~/protonFiles`. These files will be loaded into `dmenu_protonvpn` the next time it is run.
+
+<img src="examples/dmenu_protonvpn.png" /> 
+<img src="examples/dmenu_protonvpn_about.png" /> 
+<img src="examples/dmenu_protonvpn_dfiles.png" /> 
+<img src="examples/dmenu_protonvpn_credentials.png" /> 
 
 ### How to use (CLI):
 
