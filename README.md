@@ -8,7 +8,7 @@ dmenu_protonvpn - Dmenu script tool for manage your ProtonVPN connections
   * openvpn
   * coreutils
   * sed
-  * kitty `(Opcional)`
+  * kitty `(Optional)`
   * xterm
   * bash
   * freetype2-devel
