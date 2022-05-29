@@ -2,19 +2,21 @@
 
 ################################################################
 # Script for manage your ProtonVPN connections (Dmenu VERSION) #
-# Last change: 28-05-2022                                      #
+# Last change: 29-05-2022                                      #
 # Author: q3aql                                                #
 # Contact: q3aql@duck.com                                      #
 # License: GPL v2.0                                            #
 ################################################################
 VERSION="2.0"
-M_DATE="280522"
+M_DATE="290522"
 
 # Variables
 protonFiles="${HOME}/protonFiles"
 url_download="https://account.protonvpn.com/downloads"
 url_credentials="https://account.protonvpn.com/account#openvpn"
 file_credentials="/opt/dmenu_protonvpn/proton-credentials.txt"
+user_credentials="/opt/dmenu_protonvpn/proton-user.txt"
+pass_credentials="/opt/dmenu_protonvpn/proton-pass.txt"
 sed_file_credentials="\/opt\/dmenu_protonvpn\/proton-credentials.txt"
 menu_files="/opt/dmenu_protonvpn/menu"
 
@@ -81,6 +83,8 @@ function openBrowser() {
 }
 
 function insertCredentials() {
+  cat ${user_credentials} > ${file_credentials}
+  cat ${pass_credentials} >> ${file_credentials}
   if [ -f "${1}" ] ; then
     check_credentials=$(cat "${1}" | grep "auth-user-pass ${file_credentials}")
     if [ -z "${check_credentials}" ] ; then
@@ -89,7 +93,50 @@ function insertCredentials() {
   fi
 }
 
+function editCredentialsText() {
+  if [ -f ${user_credentials} ] ; then
+    current_user=$(cat ${user_credentials})
+  else
+    current_user=""
+  fi
+  if [ -f ${pass_credentials} ] ; then
+    current_pass=$(cat ${pass_credentials})
+  else
+    current_pass=""
+  fi
+  echo "  EDIT CREDENTIALS:"
+  echo ""
+  echo "  Edit USER"
+  echo "  Edit PASS"
+  echo ""
+  echo "  URL Credentials: ${url_credentials}"
+  echo ""
+  echo "  Configured user: ${current_user}"
+  echo "  Configured pass: ${current_pass}"
+  echo ""
+}
+
 function editCredentials() {
+  select_output=$(editCredentialsText | /opt/dmenu_protonvpn/dmenu "$@" -p "嬨  dmenu_protonvpn v${VERSION}")
+  if [ "${select_output}" == "  URL Credentials: ${url_credentials}" ] ; then                                                                                                                                                              
+    openBrowser "${url_credentials}" &
+    editCredentials
+  elif [ "${select_output}" == "  Edit USER" ] ; then
+    ${termrun} "${menu_files}/edit-user-credential.sh"
+    cat ${user_credentials} > ${file_credentials}
+    cat ${pass_credentials} >> ${file_credentials}
+    editCredentials
+  elif [ "${select_output}" == "  Edit PASS" ] ; then
+    ${termrun} "${menu_files}/edit-pass-credential.sh"
+    cat ${user_credentials} > ${file_credentials}
+    cat ${pass_credentials} >> ${file_credentials}
+    editCredentials
+  else
+    run_main
+  fi 
+}
+
+function editCredentials2() {
   user_openvpn=$(zenity --entry --title "dmenu_protonvpn ${VERSION} (${M_DATE})" \
 --text "URL Credentials ${url_credentials}\n\nUser OpenVPN / IKEv2:" --entry-text "USER-HERE")
   pass_openvpn=$(zenity --entry --title "dmenu_protonvpn ${VERSION} (${M_DATE})" \
