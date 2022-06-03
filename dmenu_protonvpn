@@ -122,12 +122,22 @@ function editCredentials() {
     openBrowser "${url_credentials}" &
     editCredentials
   elif [ "${select_output}" == "  Edit USER" ] ; then
-    ${termrun} "${menu_files}/edit-user-credential.sh"
+    user_openvpn=$(echo > /dev/null | /opt/dmenu_protonvpn/dmenu "$@" -p "  User OpenVPN / IKEv2:")
+    if [ -z "${user_openvpn}" ] ; then
+      echo "# User canceled"
+    else
+      echo "${user_openvpn}" > ${user_credentials}
+    fi
     cat ${user_credentials} > ${file_credentials}
     cat ${pass_credentials} >> ${file_credentials}
     editCredentials
   elif [ "${select_output}" == "  Edit PASS" ] ; then
-    ${termrun} "${menu_files}/edit-pass-credential.sh"
+    pass_openvpn=$(echo > /dev/null | /opt/dmenu_protonvpn/dmenu "$@" -p "  Password OpenVPN / IKEv2:")
+    if [ -z "${pass_openvpn}" ] ; then
+      echo "# Pass canceled"
+    else
+      echo "${pass_openvpn}" > ${pass_credentials}
+    fi
     cat ${user_credentials} > ${file_credentials}
     cat ${pass_credentials} >> ${file_credentials}
     editCredentials
