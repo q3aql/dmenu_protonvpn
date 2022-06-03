@@ -50,7 +50,6 @@ install: all
 	chmod 755 /usr/bin/dmenu_protonvpn
 	cp -rf config $(DESTDIR)$(PREFIX)/
 	cp -rf fonts $(DESTDIR)$(PREFIX)/
-	cp -rf menu $(DESTDIR)$(PREFIX)/
 	cp -rf icon $(DESTDIR)$(PREFIX)/
 	cp -rf icon/dmenu_protonvpn.desktop /usr/share/applications/
 	chmod +x /usr/share/applications/dmenu_protonvpn.desktop
@@ -78,7 +77,6 @@ uninstall:
 		$(DESTDIR)$(PREFIX)/dmenu_protonvpn_cli\
 		$(DESTDIR)$(PREFIX)/config\
 		$(DESTDIR)$(PREFIX)/fonts\
-		$(DESTDIR)$(PREFIX)/menu\
 		$(DESTDIR)$(PREFIX)/icon\
 		$(DESTDIR)$(PREFIX)/proton-credentials.txt\
 		$(DESTDIR)$(MANPREFIX)/man1/dmenu.1\
