@@ -2,17 +2,14 @@ dmenu_protonvpn - Dmenu script tool for manage your ProtonVPN connections
 =========================================================================
 
 ### Dependencies:
+  
+  * **Arch Linux:**
+    * `sudo pacman -S openvpn gcc make coreutils sed expat freetype2 libxinerama xterm brotli fontconfig libbsd libmd libpng libx11 libxau libxdmcp libxft libxrender` 
 
-  * gcc 
-  * make
-  * openvpn
-  * coreutils
-  * sed
-  * kitty `(Optional)`
-  * xterm
-  * bash
-  * freetype2-devel
-  * expat-devel
+  * **Debian/Ubuntu:**
+    * `sudo apt install openvpn gcc make coreutils sed libexpat1-dev libfreetype-dev libxinerama-dev x11-utils xterm libxft-dev libfreetype6-dev libfontconfig1-dev libpng-dev libbrotli-dev libxrender-dev libmd-dev libxau-dev libbsd-dev libxdmcp-dev`
+
+_Note: Installation of `kitty` is opcional._
 
 ### Build and install:
 
