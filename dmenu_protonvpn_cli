@@ -144,7 +144,6 @@ function connectprotonVPN() {
       echo -e " ${red}${initialList}${end}${purple} -->${end}${green} ${entryRead}${end}" 
       initialList=$(expr ${initialList} + 1)
     done
-    rm -rf /tmp/dmenu_protonvpn-tmp
     echo ""
     echo -e " ${red}r${end}${purple} -->${end}${green} Return to menu (cancel)${end}"
     echo ""
