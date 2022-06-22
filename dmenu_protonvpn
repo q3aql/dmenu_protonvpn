@@ -91,6 +91,8 @@ function insertCredentials() {
      sed -i "s/auth-user-pass/auth-user-pass ${sed_file_credentials}/g" "${1}"  
     fi
   fi
+  sed -i "s/up \/etc\/openvpn\/update-resolv-conf//g" "${1}"
+  sed -i "s/down \/etc\/openvpn\/update-resolv-conf//g" "${1}"
 }
 
 function editCredentialsText() {
