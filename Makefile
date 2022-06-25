@@ -56,7 +56,6 @@ install: all
 	touch $(DESTDIR)$(PREFIX)/proton-user.txt
 	touch $(DESTDIR)$(PREFIX)/proton-pass.txt
 	touch $(DESTDIR)$(PREFIX)/proton-credentials.txt
-	chmod 755 -R $(DESTDIR)$(PREFIX)/menu
 	chmod 755 -R $(DESTDIR)$(PREFIX)/icon
 	chmod 755 $(DESTDIR)$(PREFIX)/dmenu
 	chmod 755 $(DESTDIR)$(PREFIX)/dmenu_protonvpn
